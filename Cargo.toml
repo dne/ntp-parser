@@ -12,8 +12,8 @@ categories = ["network-programming", "parser-implementations"]
 edition = "2018"
 
 [dependencies]
-nom = "7.0"
-nom-derive = "0.10"
+nom = { git = "https://github.com/dne/nom", branch = "7.0-no_std", default-features = false }
+nom-derive = { git = "https://github.com/dne/nom-derive", branch = "no_std", default-features = false }
 libm = { version = "0.2", optional = true }
 
 [badges]
