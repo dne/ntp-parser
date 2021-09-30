@@ -1,10 +1,17 @@
 use nom::bytes::streaming::take;
-use nom::combinator::{complete, map, map_parser, opt};
+use nom::combinator::{complete, map, opt};
 use nom::error::{make_error, ErrorKind};
-use nom::multi::many1;
 use nom::number::streaming::be_u8;
+#[cfg(feature = "alloc")]
+use nom::{combinator::map_parser, multi::many1};
 pub use nom::{Err, IResult};
 use nom_derive::*;
+
+#[cfg(feature = "alloc")]
+extern crate alloc;
+
+#[cfg(feature = "alloc")]
+use alloc::vec::Vec;
 
 #[derive(Debug, PartialEq)]
 pub enum NtpPacket<'a> {
@@ -73,6 +80,7 @@ pub struct NtpV4Packet<'a> {
     pub ts_recv: u64,
     pub ts_xmit: u64,
 
+    #[cfg(feature = "alloc")]
     #[nom(Parse = "try_parse_extensions")]
     pub extensions: Vec<NtpExtension<'a>>,
     #[nom(Cond(!i.is_empty()))]
@@ -80,8 +88,14 @@ pub struct NtpV4Packet<'a> {
 }
 
 impl<'a> NtpV4Packet<'a> {
+    #[cfg(feature = "std")]
     pub fn get_precision(&self) -> f32 {
         2.0_f32.powf(self.precision as f32)
+    }
+
+    #[cfg(all(not(feature = "std"), feature = "libm"))]
+    pub fn get_precision(&self) -> f32 {
+        libm::powf(2.0_f32, self.precision as f32)
     }
 }
 
@@ -101,6 +115,7 @@ pub struct NtpMac<'a> {
     pub mac: &'a [u8],
 }
 
+#[cfg(feature = "alloc")]
 #[inline]
 pub fn parse_ntp_extension(i: &[u8]) -> IResult<&[u8], NtpExtension> {
     NtpExtension::parse(i)
@@ -118,6 +133,7 @@ pub fn parse_ntp_extension(i: &[u8]) -> IResult<&[u8], NtpExtension> {
 //  if >  20, ext + MAC
 //  if ==  0, nothing
 //  else      error
+#[cfg(feature = "alloc")]
 fn try_parse_extensions(i: &[u8]) -> IResult<&[u8], Vec<NtpExtension>> {
     if i.is_empty() || i.len() == 20 {
         // if empty, or if remaining length is exactly the MAC length (20), assume we do not have
