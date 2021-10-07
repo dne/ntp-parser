@@ -14,12 +14,14 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 #[derive(Debug, PartialEq)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum NtpPacket<'a> {
     V3(NtpV3Packet<'a>),
     V4(NtpV4Packet<'a>),
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, NomBE)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct NtpMode(pub u8);
 
 #[allow(non_upper_case_globals)]
@@ -36,6 +38,7 @@ impl NtpMode {
 
 /// An NTP version 3 packet
 #[derive(Debug, PartialEq, NomBE)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct NtpV3Packet<'a> {
     #[nom(PreExec = "let (i, b0) = be_u8(i)?;")]
     #[nom(Value(b0 >> 6))]
@@ -61,6 +64,7 @@ pub struct NtpV3Packet<'a> {
 
 /// An NTP version 4 packet
 #[derive(Debug, PartialEq, NomBE)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct NtpV4Packet<'a> {
     #[nom(PreExec = "let (i, b0) = be_u8(i)?;")]
     #[nom(Value(b0 >> 6))]
@@ -109,6 +113,7 @@ pub struct NtpExtension<'a> {
 }
 
 #[derive(Debug, PartialEq, NomBE)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct NtpMac<'a> {
     pub key_id: u32,
     #[nom(Parse = "take(16usize)")]
